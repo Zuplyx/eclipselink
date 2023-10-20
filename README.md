@@ -8,21 +8,24 @@
 [//]: # "  "
 [//]: # " SPDX-License-Identifier: EPL-2.0 OR BSD-3-Clause "
 
-[![Language grade: Java](https://img.shields.io/lgtm/grade/java/g/eclipse-ee4j/eclipselink.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/eclipse-ee4j/eclipselink/context:java)
-[![Total alerts](https://img.shields.io/lgtm/alerts/g/eclipse-ee4j/eclipselink.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/eclipse-ee4j/eclipselink/alerts/)
 
-EclipseLink master (4.0.x)
-[![Maven Central](https://img.shields.io/maven-central/v/org.eclipse.persistence/eclipselink.svg?versionPrefix=4.0&label=Maven%20Central)](https://mvnrepository.com/artifact/org.eclipse.persistence/eclipselink)
-[![Jakarta Staging (Snapshots)](https://img.shields.io/nexus/s/https/jakarta.oss.sonatype.org/org.eclipse.persistence/eclipselink.svg)](https://jakarta.oss.sonatype.org/content/repositories/staging/org/eclipse/persistence/eclipselink)
-[![Master Build Status](https://ci.eclipse.org/eclipselink/job/eclipselink-nightly-master/badge/icon)](https://ci.eclipse.org/eclipselink/job/eclipselink-nightly-master)
+# POC for Issue 1941: ValueHolders are consuming too much memory
+This branch serves as a POC for a workaround for the memory problems caused by [#1941](https://github.com/eclipse-ee4j/eclipselink/issues/1941):
 
-EclipseLink 3.0.x
-[![Maven Central](https://img.shields.io/maven-central/v/org.eclipse.persistence/eclipselink.svg?versionPrefix=3.0&label=Maven%20Central)](https://mvnrepository.com/artifact/org.eclipse.persistence/eclipselink)
-[![3.0 Build Status](https://ci.eclipse.org/eclipselink/job/eclipselink-nightly-3.0/badge/icon)](https://ci.eclipse.org/eclipselink/job/eclipselink-nightly-3.0)
+Eclipselink currently creates two `ValueHolder` per reference (a `UnitOfWorkQueryValueHolder` which wraps a `QueryBasedValueHolder`).
+For this branch I combined them by reimplementing the methods and fields of `QueryBasedValueHolder` into `UnitOfWorkQueryValueHolder`.
+This way we need only one `ValueHolder` intance per reference.
 
-EclipseLink 2.7.x
-[![Maven Central](https://img.shields.io/maven-central/v/org.eclipse.persistence/eclipselink.svg?versionPrefix=2.7&label=Maven%20Central)](https://mvnrepository.com/artifact/org.eclipse.persistence/eclipselink)
-[![2.7.x  Build Status](https://ci.eclipse.org/eclipselink/job/eclipselink-nightly-2.7/badge/icon)](https://ci.eclipse.org/eclipselink/job/eclipselink-nightly-2.7)
+Due to this change the original object kept by eclipselink and the clone returned to the application now share the same `ValueHolder`.
+This requires changes to eclipselink's change detection. `UnitOfWorkQueryValueHolder` will now save the original value returned by the DB in the new field `originalValue`.
+Change detection will then have to compare `value` to `originalValue`.
+
+## TODO:
+* Implement change detection as described above
+* Fix other failing unit tests
+* Check for other optimisation potential (especially if `UnitOfWorkQueryValueHolder` actually needs all methods of `QueryBasedValueHolder`) 
+
+
 
 
 # EclipseLink
