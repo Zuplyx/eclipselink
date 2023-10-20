@@ -263,10 +263,10 @@ public class BasicIndirectionPolicy extends IndirectionPolicy {
                 return valueHolder;
             }
         }
-        if (unitOfWorkIndirectionObject instanceof WrappingValueHolder) {
+        if (unitOfWorkIndirectionObject instanceof WrappingValueHolder && !(unitOfWorkIndirectionObject instanceof UnitOfWorkQueryValueHolder)) {
             ValueHolderInterface<?> valueHolder =  ((WrappingValueHolder<?>)unitOfWorkIndirectionObject).getWrappedValueHolder();
             if (!session.isProtectedSession()){
-                while (valueHolder instanceof WrappingValueHolder && ((WrappingValueHolder<?>)valueHolder).getWrappedValueHolder() != null){
+                while (valueHolder instanceof WrappingValueHolder && ((WrappingValueHolder<?>)valueHolder).getWrappedValueHolder() != null && !(valueHolder instanceof UnitOfWorkQueryValueHolder)){
                     valueHolder = ((WrappingValueHolder<?>)valueHolder).getWrappedValueHolder();
                 }
             }
@@ -520,7 +520,7 @@ public class BasicIndirectionPolicy extends IndirectionPolicy {
      */
     @Override
     public Object valueFromQuery(ReadQuery query, AbstractRecord row, Object sourceObject, AbstractSession session) {
-        return new QueryBasedValueHolder<>(query, sourceObject, row, session);
+        return new UnitOfWorkQueryValueHolder<>(query, sourceObject, row, session);
     }
 
     /**
@@ -531,7 +531,7 @@ public class BasicIndirectionPolicy extends IndirectionPolicy {
      */
     @Override
     public Object valueFromQuery(ReadQuery query, AbstractRecord row, AbstractSession session) {
-        return new QueryBasedValueHolder<>(query, row, session);
+        return new UnitOfWorkQueryValueHolder<>(query, row, session);
     }
 
     /**

@@ -69,6 +69,7 @@ import org.eclipse.persistence.internal.identitymaps.CacheId;
 import org.eclipse.persistence.internal.identitymaps.CacheKey;
 import org.eclipse.persistence.internal.identitymaps.IdentityMapManager;
 import org.eclipse.persistence.internal.indirection.DatabaseValueHolder;
+import org.eclipse.persistence.internal.indirection.QueryBasedValueHolder;
 import org.eclipse.persistence.internal.indirection.UnitOfWorkQueryValueHolder;
 import org.eclipse.persistence.internal.indirection.UnitOfWorkTransformerValueHolder;
 import org.eclipse.persistence.internal.localization.ExceptionLocalization;
@@ -6263,6 +6264,13 @@ public class UnitOfWorkImpl extends AbstractSession implements org.eclipse.persi
 
     @Override
     public <T> DatabaseValueHolder<T> createCloneQueryValueHolder(ValueHolderInterface<T> attributeValue, Object clone, AbstractRecord row, ForeignReferenceMapping mapping) {
+        if(attributeValue instanceof QueryBasedValueHolder){
+            return UnitOfWorkQueryValueHolder.fromQueryBasedValueHolder((QueryBasedValueHolder<T>) attributeValue, this, clone, row, mapping);
+        }
+        if(attributeValue instanceof UnitOfWorkQueryValueHolder){
+            ((UnitOfWorkQueryValueHolder<T>) attributeValue).registerForUnitOfWork(clone, mapping, this);
+            return  ((UnitOfWorkQueryValueHolder<T>) attributeValue);
+        }
         return new UnitOfWorkQueryValueHolder<>(attributeValue, clone, mapping, row, this);
     }
 

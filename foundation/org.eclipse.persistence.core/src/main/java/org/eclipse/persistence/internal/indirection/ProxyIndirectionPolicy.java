@@ -123,7 +123,7 @@ public class ProxyIndirectionPolicy extends BasicIndirectionPolicy {
         } catch (Exception e) {
             return null;
         }
-        ValueHolderInterface<?> valueHolder = new QueryBasedValueHolder<>(query, row, session);
+        ValueHolderInterface<?> valueHolder = new UnitOfWorkQueryValueHolder<>(query,row,session);
 
         return ProxyIndirectionHandler.newProxyInstance(descriptor.getJavaClass(), targetInterfaces, valueHolder);
     }

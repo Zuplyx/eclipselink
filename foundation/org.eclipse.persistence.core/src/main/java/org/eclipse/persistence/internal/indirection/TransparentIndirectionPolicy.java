@@ -371,14 +371,14 @@ public class TransparentIndirectionPolicy extends IndirectionPolicy {
             return new ValueHolder<>();
         }
         IndirectContainer container = (IndirectContainer)unitOfWorkIndirectionObject;
-        if (container.getValueHolder() instanceof WrappingValueHolder) {
+        if (container.getValueHolder() instanceof WrappingValueHolder && !(unitOfWorkIndirectionObject instanceof UnitOfWorkQueryValueHolder)) {
             ValueHolderInterface<?> valueHolder = ((WrappingValueHolder<?>)container.getValueHolder()).getWrappedValueHolder();
             if ((valueHolder == null) && session.isRemoteUnitOfWork()) {
                 RemoteSessionController controller = ((RemoteUnitOfWork)session).getParentSessionController();
                 valueHolder = controller.getRemoteValueHolders().get(((UnitOfWorkValueHolder<?>)container.getValueHolder()).getWrappedValueHolderRemoteID());
             }
             if (!session.isProtectedSession()){
-                while (valueHolder instanceof WrappingValueHolder && ((WrappingValueHolder<?>)valueHolder).getWrappedValueHolder() != null){
+                while (valueHolder instanceof WrappingValueHolder && ((WrappingValueHolder<?>)valueHolder).getWrappedValueHolder() != null && !(valueHolder instanceof UnitOfWorkQueryValueHolder)){
                     valueHolder = ((WrappingValueHolder<?>)valueHolder).getWrappedValueHolder();
                 }
             }
@@ -747,7 +747,7 @@ public class TransparentIndirectionPolicy extends IndirectionPolicy {
      */
     @Override
     public Object valueFromQuery(ReadQuery query, AbstractRecord row, AbstractSession session) {
-        return this.buildIndirectContainer(new QueryBasedValueHolder<>(query, row, session));
+            return this.buildIndirectContainer(new UnitOfWorkQueryValueHolder<>(query, row, session));
     }
 
     /**
@@ -758,7 +758,7 @@ public class TransparentIndirectionPolicy extends IndirectionPolicy {
      */
     @Override
     public Object valueFromQuery(ReadQuery query, AbstractRecord row, Object object, AbstractSession session) {
-        return this.buildIndirectContainer(new QueryBasedValueHolder<>(query, object, row, session));
+            return this.buildIndirectContainer(new UnitOfWorkQueryValueHolder<>(query, object, row, session));
     }
 
     /**
